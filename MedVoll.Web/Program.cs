@@ -21,6 +21,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(x => x.UseSqlite(connectionS
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddRoles<IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.SignIn.RequireConfirmedEmail = true; // Exigir e-mails confirmados para login
+    options.SignIn.RequireConfirmedPhoneNumber = false; // Não exigir confirmação de número de telefone
+});
+
 builder.Services.AddTransient<IMedicoRepository, MedicoRepository>();
 builder.Services.AddTransient<IConsultaRepository, ConsultaRepository>();
 builder.Services.AddTransient<IMedicoService, MedicoService>();
@@ -32,6 +38,8 @@ builder.Services.AddAntiforgery(options =>
     options.Cookie.HttpOnly = true; // Evitar acesso via JavaScript
     options.HeaderName = "X-CSRF-TOKEN"; // Cabeçalho personalizado para APIs
 });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -49,11 +57,14 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapRazorPages();
 
 using (var scope = app.Services.CreateScope())
 {
