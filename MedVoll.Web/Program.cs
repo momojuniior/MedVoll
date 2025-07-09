@@ -21,10 +21,33 @@ builder.Services.AddDbContext<ApplicationDbContext>(x => x.UseSqlite(connectionS
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddRoles<IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
 
+// Identity
 builder.Services.Configure<IdentityOptions>(options =>
 {
     options.SignIn.RequireConfirmedEmail = true; // Exigir e-mails confirmados para login
     options.SignIn.RequireConfirmedPhoneNumber = false; // Não exigir confirmação de número de telefone
+    options.Lockout.AllowedForNewUsers = true; // Pode bloquear novos usuários
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(2); // Tempo de bloqueio
+    options.Lockout.MaxFailedAccessAttempts = 2; // Máximo de tentativas antes de bloquear
+    options.Password.RequireDigit = true; // Exigir pelo menos um número
+    options.Password.RequireLowercase = true; // Exigir pelo menos uma letra minúscula
+    options.Password.RequireUppercase = true; // Exigir pelo menos uma letra maiúscula
+    options.Password.RequireNonAlphanumeric = true; // Exigir caracteres especiais
+    options.Password.RequiredLength = 8; // Tamanho mínimo da senha
+});
+
+// Cookies
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login"; // Redireciona para login se não autenticado
+    options.LogoutPath = "/Identity/Account/Logout"; // Caminho para logout
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied"; // Caminho para acesso negado
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(2); // Tempo de expiração
+    options.SlidingExpiration = true; // Renova o cookie automaticamente
+
+    options.Cookie.HttpOnly = true; // Impede acesso via JavaScript
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Exige HTTPS
+    options.Cookie.SameSite = SameSiteMode.Strict; // Restringe envio de cookies entre sites
 });
 
 builder.Services.AddTransient<IMedicoRepository, MedicoRepository>();
