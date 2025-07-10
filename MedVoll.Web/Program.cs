@@ -50,6 +50,14 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.SameSite = SameSiteMode.Strict; // Restringe envio de cookies entre sites
 });
 
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.IdleTimeout = TimeSpan.FromMinutes(1);
+});
+
 builder.Services.AddTransient<IMedicoRepository, MedicoRepository>();
 builder.Services.AddTransient<IConsultaRepository, ConsultaRepository>();
 builder.Services.AddTransient<IMedicoService, MedicoService>();
@@ -65,6 +73,8 @@ builder.Services.AddAntiforgery(options =>
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+app.UseSession();
 
 if (app.Environment.IsDevelopment())
 {
